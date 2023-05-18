@@ -7,7 +7,7 @@ import timm
 
 if __name__ == '__main__':
     model_num = 2
-    lr = 0.01
+    lr = 0.0001 # learning rate 0.01 -> 0.0001
 
     # Check if GPU is available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

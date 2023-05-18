@@ -11,7 +11,7 @@ import numpy as np
 if __name__ == '__main__':
     model_num = 2 # total number of models
     total_epoch = 50 # total epoch
-    lr = 0.01 # initial learning rate
+    lr = 0.0001 # initial learning rate # learning rate 0.01 -> 0.0001
 
     for s in range(model_num):
         # fix random seed
@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
         # Load the CIFAR-10 dataset
         trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
-        trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=16)
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=256, shuffle=True, num_workers=16) # batch_size 128->256
 
         testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
         testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=16)
