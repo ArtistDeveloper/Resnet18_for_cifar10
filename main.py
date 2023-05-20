@@ -11,7 +11,7 @@ import numpy as np
 if __name__ == '__main__':
     model_num = 2 # total number of models
     total_epoch = 50 # total epoch
-    lr = 0.0001 # initial learning rate # learning rate 0.01 -> 0.0001
+    lr = 0.001 # initial learning rate # learning rate 0.01 -> 0.0001
 
     for s in range(model_num):
         # fix random seed
@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
         # Load the CIFAR-10 dataset
         trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
-        trainloader = torch.utils.data.DataLoader(trainset, batch_size=256, shuffle=True, num_workers=16) # batch_size 128->256
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=16) # batch_size 128->256
 
         testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
         testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=16)
@@ -57,7 +57,9 @@ if __name__ == '__main__':
 
         # Define the loss function and optimizer
         criterion = nn.CrossEntropyLoss()
-        optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
+        # optimizer = optim.Adam(model.parameters(), lr=lr, momentum=0.9)
+        optimizer = optim.Adam(model.parameters(), lr=lr)
+
         # Define the learning rate scheduler
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
         # scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=100, eta_min=0.01)
