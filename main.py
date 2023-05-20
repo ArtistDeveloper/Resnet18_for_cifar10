@@ -11,7 +11,7 @@ import numpy as np
 if __name__ == '__main__':
     model_num = 2 # total number of models
     total_epoch = 50 # total epoch
-    lr = 0.001 # initial learning rate # learning rate 0.01 -> 0.001
+    lr = 0.001 # initial learning rate # learning rate 0.01 -> 0.0001
 
     for s in range(model_num):
         # fix random seed
