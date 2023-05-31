@@ -10,8 +10,9 @@ import numpy as np
 
 if __name__ == '__main__':
     model_num = 2 # total number of models
-    total_epoch = 50 # total epoch
+    total_epoch = 100 # total epoch
     lr = 0.001 # initial learning rate # learning rate 0.01 -> 0.0001
+    num_GPU = 1
 
     for s in range(model_num):
         # fix random seed
@@ -46,10 +47,10 @@ if __name__ == '__main__':
 
         # Load the CIFAR-10 dataset
         trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
-        trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=16) # batch_size 128->256
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=4 * num_GPU, pin_memory=True) # batch_size 128->256
 
         testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
-        testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=16)
+        testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=4 * num_GPU, pin_memory=True)
 
         # Define the ResNet-18 model with pre-trained weights
         model = timm.create_model('resnet18', pretrained=True, num_classes=10)
@@ -71,12 +72,16 @@ if __name__ == '__main__':
             for i, data in enumerate(trainloader, 0):
                 inputs, labels = data
                 inputs, labels = inputs.to(device), labels.to(device)  # Move the input data to the GPU
-                optimizer.zero_grad()
+                # optimizer.zero_grad()
+                for param in model.parameters():
+                    param.grad = None
+
                 outputs = model(inputs)
                 loss = criterion(outputs, labels)
                 loss.backward()
                 optimizer.step()
-                running_loss += loss.item()
+                # running_loss += loss.item()
+                running_loss += loss.detach()
                 if i % 100 == 99:
                     print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 100))
                     running_loss = 0.0   
@@ -94,7 +99,8 @@ if __name__ == '__main__':
                     outputs = model(images)
                     _, predicted = torch.max(outputs.data, 1)
                     total += labels.size(0)
-                    correct += (predicted == labels).sum().item()
+                    # correct += (predicted == labels).sum().item()
+                    correct += (predicted == labels).sum().detach()
 
             print('Accuracy of the network on the 10000 test images: %f %%' % (100 * correct / total))
 
