@@ -7,6 +7,30 @@ import timm
 import random
 import numpy as np
 
+from timm.models.layers import Conv2dSame
+
+class GroupNormResNet(nn.Module):
+    def __init__(self, num_groups):
+        super().__init__()
+        # Load a pretrained ResNet model
+        self.model = timm.create_model('resnet18', pretrained=True, num_classes=10)
+        self.replace_bn_by_gn(self.model, num_groups)
+
+    def forward(self, x):
+        return self.model(x)
+
+    def replace_bn_by_gn(self, model, num_groups):
+        for name, module in model.named_children():
+            if isinstance(module, (nn.BatchNorm2d, nn.BatchNorm1d)):
+                if isinstance(module, nn.BatchNorm2d):
+                    new_module = nn.GroupNorm(num_groups, module.num_features)
+                else:  # In case of BatchNorm1d (for the FC layer)
+                    new_module = nn.GroupNorm(1, module.num_features)
+                new_module.load_state_dict(module.state_dict(), strict=False)
+                setattr(model, name, new_module)
+            else:
+                self.replace_bn_by_gn(module, num_groups)
+
 
 if __name__ == '__main__':
     model_num = 2 # total number of models
@@ -35,14 +59,14 @@ if __name__ == '__main__':
             transforms.RandomCrop(224),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(), # change [0, 255]int value to [0, 1] Float value(FloatTensor type)
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)) # 변경가능
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261))
         ])
 
         transform_test = transforms.Compose([
             transforms.Resize(256),
             transforms.CenterCrop(224),
             transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)) # 변경가능
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261))
         ])
 
         # Load the CIFAR-10 dataset
@@ -53,7 +77,8 @@ if __name__ == '__main__':
         testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=4 * num_GPU, pin_memory=True)
 
         # Define the ResNet-18 model with pre-trained weights
-        model = timm.create_model('resnet18', pretrained=True, num_classes=10)
+        # model = timm.create_model('resnet18', pretrained=True, num_classes=10)
+        model = GroupNormResNet(num_groups=32).to(device)
         model = model.to(device)  # Move the model to the GPU
 
         # Define the loss function and optimizer
