@@ -77,8 +77,8 @@ if __name__ == '__main__':
         testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=4 * num_GPU, pin_memory=True)
 
         # Define the ResNet-18 model with pre-trained weights
-        # model = timm.create_model('resnet18', pretrained=True, num_classes=10)
-        model = GroupNormResNet(num_groups=32).to(device)
+        model = timm.create_model('resnet18', pretrained=True, num_classes=10)
+        # model = GroupNormResNet(num_groups=32).to(device)
         model = model.to(device)  # Move the model to the GPU
 
         # Define the loss function and optimizer
@@ -97,6 +97,7 @@ if __name__ == '__main__':
             for i, data in enumerate(trainloader, 0):
                 inputs, labels = data
                 inputs, labels = inputs.to(device), labels.to(device)  # Move the input data to the GPU
+                
                 # optimizer.zero_grad()
                 for param in model.parameters():
                     param.grad = None
@@ -124,8 +125,7 @@ if __name__ == '__main__':
                     outputs = model(images)
                     _, predicted = torch.max(outputs.data, 1)
                     total += labels.size(0)
-                    # correct += (predicted == labels).sum().item()
-                    correct += (predicted == labels).sum().detach()
+                    correct += (predicted == labels).sum().detach() # correct += (predicted == labels).sum().item()
 
             print('Accuracy of the network on the 10000 test images: %f %%' % (100 * correct / total))
 
