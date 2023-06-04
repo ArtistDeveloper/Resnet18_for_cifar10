@@ -1,4 +1,4 @@
-# cifar10-baseline
+# cifar10 classification
 
 - train
 ```
